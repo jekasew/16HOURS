@@ -568,3 +568,119 @@ end
 Load()	
     end
 end)
+local Section = Tab:NewSection("Movement")
+Section:NewToggle("Фрикам", "просвет но хуже", function(state)
+    if state then
+        local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local freecamSpeed = 1.5
+local camCFrame = Camera.CFrame
+Camera.CameraType = Enum.CameraType.Scriptable -- Включаем свободную камеру
+
+humanoid.PlatformStand = true -- отключаем управление персонажем
+local rootPosition = rootPart.Position
+
+local keysPressed = {}
+local mouseDelta = Vector2.new(0, 0)
+local sensitivity = 0.2
+local rotationX, rotationY = 0, 0
+
+UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+UserInputService.MouseIconEnabled = false
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    keysPressed[input.KeyCode] = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    keysPressed[input.KeyCode] = nil
+end)
+
+UserInputService.InputChanged:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        mouseDelta = Vector2.new(input.Delta.x, input.Delta.y)
+    end
+end)
+
+local running = true
+
+local conn
+conn = RunService.RenderStepped:Connect(function(deltaTime)
+    if not running then return end
+
+    -- Фиксируем персонажа
+    rootPart.CFrame = CFrame.new(rootPosition)
+
+    -- Обновляем поворот камеры по мыши
+    rotationX = rotationX - mouseDelta.y * sensitivity * deltaTime
+    rotationY = rotationY - mouseDelta.x * sensitivity * deltaTime
+
+    rotationX = math.clamp(rotationX, -math.rad(89), math.rad(89))
+
+    local rotationCFrame = CFrame.Angles(rotationX, rotationY, 0)
+
+    camCFrame = CFrame.new(camCFrame.Position) * rotationCFrame
+
+    mouseDelta = Vector2.new(0, 0)
+
+    -- Движение камеры
+    local moveVector = Vector3.new()
+
+    if keysPressed[Enum.KeyCode.W] then
+        moveVector = moveVector + camCFrame.LookVector
+    end
+    if keysPressed[Enum.KeyCode.S] then
+        moveVector = moveVector - camCFrame.LookVector
+    end
+    if keysPressed[Enum.KeyCode.A] then
+        moveVector = moveVector - camCFrame.RightVector
+    end
+    if keysPressed[Enum.KeyCode.D] then
+        moveVector = moveVector + camCFrame.RightVector
+    end
+    if keysPressed[Enum.KeyCode.E] then
+        moveVector = moveVector + Vector3.new(0,1,0)
+    end
+    if keysPressed[Enum.KeyCode.Q] then
+        moveVector = moveVector - Vector3.new(0,1,0)
+    end
+
+    if moveVector.Magnitude > 0 then
+        moveVector = moveVector.Unit * freecamSpeed
+        camCFrame = camCFrame + moveVector * deltaTime * 50
+    end
+
+    Camera.CFrame = camCFrame
+end)
+
+-- Функция для выключения freecam
+function DisableFreecam()
+    running = false
+    Camera.CameraType = Enum.CameraType.Custom
+    humanoid.PlatformStand = false
+    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+    UserInputService.MouseIconEnabled = true
+    if conn then
+        conn:Disconnect()
+        conn = nil
+    end
+end
+
+-- Делаем функцию глобальной для внешнего вызова
+_G.DisableFreecam = DisableFreecam
+
+    else
+        if _G.DisableFreecam then
+    _G.DisableFreecam()
+end
+    end
+end)

@@ -292,7 +292,7 @@ print("🎯 Прицельный крестик запущен")
 else
 _G.RemoveCrosshair()
     end
-end
+end)
 
 local Tab = Window:NewTab("Combat")
 

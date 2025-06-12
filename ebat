@@ -90,7 +90,7 @@ local function showWeaponOnly(player)
         gui.Name = "WeaponOnly"
         gui.Adornee = head
         gui.Size = UDim2.new(0, 100, 0, 20)
-        gui.StudsOffset = Vector3.new(0, 2.2, 0)
+        gui.StudsOffset = Vector3.new(0, -2, 0) -- Смещение вниз под игроком
         gui.AlwaysOnTop = true
         gui.Parent = head
 
@@ -142,7 +142,7 @@ end)
 
 Section:NewToggle("ДИСТАНЦИЯ", "ДАЛЕКО", function(state)
     if state then
-        local Players = game:GetService("Players")
+ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
 
@@ -153,16 +153,16 @@ local function showDistanceOnly(player)
         local character = player.Character
         if not character then return end
 
-        local head = character:FindFirstChild("Head")
-        if not head then return end
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
 
         local gui = Instance.new("BillboardGui")
         gui.Name = "DistanceOnly"
-        gui.Adornee = head
+        gui.Adornee = hrp -- Привязываем к туловищу
         gui.Size = UDim2.new(0, 100, 0, 20)
-        gui.StudsOffset = Vector3.new(0, 2.35, 0)
+        gui.StudsOffset = Vector3.new(0, 0.5, 0) -- Смещение ближе к центру
         gui.AlwaysOnTop = true
-        gui.Parent = head
+        gui.Parent = hrp
 
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, 0, 1, 0)

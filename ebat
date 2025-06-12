@@ -232,6 +232,67 @@ disableHighlighting()
     end
 end)
 
+Section:NewToggle("ПРИЦЕЛ", "крут", function(state)
+    if state then
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+-- Настройки
+local ShowCrosshair = true
+local CrosshairColor = Color3.new(1, 1, 1)  -- Белый
+local CrosshairSize = 6                    -- Половина длины линии
+local CrosshairThickness = 1.5
+
+-- Создание линий
+local crosshairH = Drawing.new("Line")
+local crosshairV = Drawing.new("Line")
+
+crosshairH.Color = CrosshairColor
+crosshairV.Color = CrosshairColor
+
+crosshairH.Thickness = CrosshairThickness
+crosshairV.Thickness = CrosshairThickness
+
+crosshairH.Visible = ShowCrosshair
+crosshairV.Visible = ShowCrosshair
+
+-- Обновление позиции
+local connection
+connection = RunService.RenderStepped:Connect(function()
+    if not ShowCrosshair then
+        crosshairH.Visible = false
+        crosshairV.Visible = false
+        return
+    end
+
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+    crosshairH.From = center - Vector2.new(CrosshairSize, 0)
+    crosshairH.To   = center + Vector2.new(CrosshairSize, 0)
+
+    crosshairV.From = center - Vector2.new(0, CrosshairSize)
+    crosshairV.To   = center + Vector2.new(0, CrosshairSize)
+
+    crosshairH.Visible = true
+    crosshairV.Visible = true
+end)
+
+-- Для отключения:
+_G.CrosshairConnection = connection
+_G.RemoveCrosshair = function()
+    crosshairH:Remove()
+    crosshairV:Remove()
+    if connection then
+        connection:Disconnect()
+    end
+end
+
+print("🎯 Прицельный крестик запущен")
+
+else
+_G.RemoveCrosshair()
+    end
+end
 
 local Tab = Window:NewTab("Combat")
 
@@ -240,7 +301,7 @@ local Section = Tab:NewSection("Aimbot")
 
 Section:NewToggle("АИМ", "УБИВАТЬ АНСОФТОВ", function(state)
     if state then
-        local Players = game:GetService("Players")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
@@ -282,16 +343,12 @@ local function showNotification(text, color)
     end)
 end
 
--- Функция поиска самого близкого к твоему персонажу игрока, попадающего в FOV круг
+-- Функция поиска цели, ближайшей к прицелу (центру экрана), попадающей в FOV круг
 local function getClosestTarget()
     local closest = nil
-    local shortestDistance = math.huge
+    local shortestScreenDistance = math.huge
 
     local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    local localCharacter = LocalPlayer.Character
-    if not localCharacter then return nil end
-    local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
-    if not localRoot then return nil end
 
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(AimPart) then
@@ -299,12 +356,9 @@ local function getClosestTarget()
             local screenPoint, onScreen = Camera:WorldToViewportPoint(part.Position)
             if onScreen then
                 local distScreen = (Vector2.new(screenPoint.X, screenPoint.Y) - centerScreen).Magnitude
-                if distScreen <= FOV then
-                    local dist3D = (part.Position - localRoot.Position).Magnitude
-                    if dist3D < shortestDistance then
-                        shortestDistance = dist3D
-                        closest = part
-                    end
+                if distScreen <= FOV and distScreen < shortestScreenDistance then
+                    shortestScreenDistance = distScreen
+                    closest = part
                 end
             end
         end

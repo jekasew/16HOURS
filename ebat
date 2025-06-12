@@ -8,85 +8,91 @@ local Section = Tab:NewSection("Esp")
 
 Section:NewToggle("ВХ", "ТИПОВ ВИДНО", function(state)
     if state then
-local color = BrickColor.new(50, 0, 250)
-local transparency = 0.8
-
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
 
-local function addNameTag(character, player)
-    local head = character:FindFirstChild("Head")
-    if head and not head:FindFirstChild("NameTag") then
-        local bill = Instance.new("BillboardGui")
-        bill.Name = "NameTag"
-        bill.Adornee = head
-        bill.Size = UDim2.new(0, 100, 0, 40)
-        bill.StudsOffset = Vector3.new(0, 2, 0)
-        bill.AlwaysOnTop = true
-        bill.Parent = head
-
-        local text = Instance.new("TextLabel")
-        text.Size = UDim2.new(1, 0, 0.3, 0)
-        text.BackgroundTransparency = 1
-        text.Text = player.Name
-        text.TextColor3 = Color3.fromRGB(255, 255, 255)
-        text.TextStrokeTransparency = 0
-        text.TextScaled = true
-        text.Font = Enum.Font.SourceSansBold
-        text.Parent = bill
-    end
+-- Удаление старых ESP
+for _, v in pairs(workspace:GetDescendants()) do
+	if v:IsA("Highlight") and v.Name == "ESP_Highlight" then
+		v:Destroy()
+	end
+	if v:IsA("BillboardGui") and v.Name == "ESP_Label" then
+		v:Destroy()
+	end
 end
 
-local function _ESP(character, player)
-    -- Ждём, пока у персонажа появится PrimaryPart
-    repeat task.wait() until character.PrimaryPart
+local function createHighlightESP(player)
+	if player == localPlayer then return end
 
-    -- Удаляем старые adornment'ы, если есть, чтобы не дублировать
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") or part:IsA("MeshPart") then
-            local oldAdornment = part:FindFirstChild("shit")
-            if oldAdornment then
-                oldAdornment:Destroy()
-            end
+	local function setup()
+		local character = player.Character
+		if not character then return end
 
-            local adornment = Instance.new("BoxHandleAdornment")
-            adornment.Name = "shit"
-            adornment.Size = part.Size
-            adornment.Color = color
-            adornment.Transparency = transparency
-            adornment.AlwaysOnTop = true
-            adornment.Visible = true
-            adornment.Adornee = part
-            adornment.ZIndex = true
-            adornment.Parent = part
-        end
-    end
+		local head = character:FindFirstChild("Head")
+		if not head then return end
 
-    addNameTag(character, player)
+		-- Highlight
+		local highlight = Instance.new("Highlight")
+		highlight.Name = "ESP_Highlight"
+		highlight.FillColor = Color3.new(1, 1, 1)
+		highlight.OutlineColor = Color3.fromRGB(0, 170, 255)
+		highlight.FillTransparency = 0.8
+		highlight.OutlineTransparency = 0
+		highlight.Adornee = character
+		highlight.Parent = character
+
+		-- Billboard GUI (без имени)
+		local gui = Instance.new("BillboardGui")
+		gui.Name = "ESP_Label"
+		gui.Adornee = head
+		gui.Size = UDim2.new(0, 100, 0, 20)
+		gui.StudsOffset = Vector3.new(0, 2.5, 0)
+		gui.AlwaysOnTop = true
+		gui.Parent = head
+
+		-- Только название оружия (снизу)
+		local weaponLabel = Instance.new("TextLabel")
+		weaponLabel.Size = UDim2.new(1, 0, 1, 0)
+		weaponLabel.Position = UDim2.new(0, 0, 0, 0)
+		weaponLabel.BackgroundTransparency = 1
+		weaponLabel.TextColor3 = Color3.fromRGB(180, 220, 255)
+		weaponLabel.TextStrokeTransparency = 0.7
+		weaponLabel.TextScaled = false
+		weaponLabel.TextSize = 11
+		weaponLabel.Font = Enum.Font.Arial
+		weaponLabel.Text = "Weapon: None"
+		weaponLabel.Parent = gui
+
+		-- Обновление оружия
+		RunService.RenderStepped:Connect(function()
+			if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+			local tool = character:FindFirstChildOfClass("Tool")
+			local weaponName = tool and tool.Name or "None"
+			weaponLabel.Text = "Weapon: " .. weaponName
+		end)
+	end
+
+	if player.Character then
+		setup()
+	end
+
+	player.CharacterAdded:Connect(function()
+		wait(1)
+		setup()
+	end)
 end
 
-local function onPlayerAdded(player)
-    -- Подписываемся на появление персонажа один раз
-    player.CharacterAdded:Connect(function(character)
-        if player ~= Players.LocalPlayer then
-            _ESP(character, player)
-        end
-    end)
-
-    -- Если персонаж уже существует (например, игрок уже в игре), запускаем сразу
-    if player.Character and player ~= Players.LocalPlayer then
-        _ESP(player.Character, player)
-    end
+-- Применить ко всем игрокам
+for _, player in ipairs(Players:GetPlayers()) do
+	createHighlightESP(player)
 end
 
-local function ESP()
-    for _, player in ipairs(Players:GetPlayers()) do
-        onPlayerAdded(player)
-    end
-
-    Players.PlayerAdded:Connect(onPlayerAdded)
-end
-
-ESP()
+-- Новые игроки
+Players.PlayerAdded:Connect(function(player)
+	createHighlightESP(player)
+end)
 
     else
 local Players = game:GetService("Players")

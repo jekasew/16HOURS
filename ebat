@@ -51,21 +51,44 @@ end
 Players.PlayerAdded:Connect(showNameOnly)
 
     else
-        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+local Players = game:GetService("Players")
+
+-- Удаляем все GUI с именем "NameOnly" у всех игроков
+for _, player in ipairs(Players:GetPlayers()) do
+    local function removeNameGui(character)
+        if not character then return end
+        local head = character:FindFirstChild("Head")
+        if head then
+            local existingGui = head:FindFirstChild("NameOnly")
+            if existingGui then
+                existingGui:Destroy()
+            end
+        end
+    end
+
     if player.Character then
-        local head = player.Character:FindFirstChild("Head")
+        removeNameGui(player.Character)
+    end
+
+    player.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        removeNameGui(char)
+    end)
+end
+
+-- Удаляем GUI у новых игроков, если они зайдут
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        local head = char:FindFirstChild("Head")
         if head then
             local gui = head:FindFirstChild("NameOnly")
             if gui then
                 gui:Destroy()
             end
         end
-    end
-
-    player.CharacterAdded:Connect(function(char)
-        char:WaitForChild("Head"):WaitForChild("NameOnly"):Destroy()
     end)
-end
+end)
 
     end
 end)
@@ -196,21 +219,43 @@ end
 Players.PlayerAdded:Connect(showDistanceOnly)
 
     else
-        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-    if player.Character then
-        local head = player.Character:FindFirstChild("Head")
-        if head then
-            local gui = head:FindFirstChild("DistanceOnly")
-            if gui then
-                gui:Destroy()
+ local Players = game:GetService("Players")
+
+-- Отключаем все уже созданные DistanceOnly GUI
+for _, player in ipairs(Players:GetPlayers()) do
+    local function removeDistanceGui(character)
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local existingGui = hrp:FindFirstChild("DistanceOnly")
+            if existingGui then
+                existingGui:Destroy()
             end
         end
     end
 
-    player.CharacterAdded:Connect(function(char)
-        char:WaitForChild("Head"):WaitForChild("DistanceOnly"):Destroy()
+    if player.Character then
+        removeDistanceGui(player.Character)
+    end
+
+    player.CharacterAdded:Connect(function(character)
+        character:WaitForChild("HumanoidRootPart", 5)
+        removeDistanceGui(character)
     end)
 end
+
+-- Перехватываем новых игроков и удаляем GUI
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        character:WaitForChild("HumanoidRootPart", 5)
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local existingGui = hrp:FindFirstChild("DistanceOnly")
+            if existingGui then
+                existingGui:Destroy()
+            end
+        end
+    end)
+end)
 
     end
 end)

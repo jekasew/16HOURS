@@ -6,6 +6,215 @@ local Tab = Window:NewTab("Visuals")
 
 local Section = Tab:NewSection("Esp")
 
+Section:NewToggle("НИКИ", "ЗНАКОМЫЕ", function(state)
+    if state then
+        local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+local function showNameOnly(player)
+    if player == localPlayer then return end
+
+    local function setup()
+        local character = player.Character
+        if not character then return end
+
+        local head = character:FindFirstChild("Head")
+        if not head then return end
+
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "NameOnly"
+        gui.Adornee = head
+        gui.Size = UDim2.new(0, 100, 0, 20)
+        gui.StudsOffset = Vector3.new(0, 2.5, 0)
+        gui.AlwaysOnTop = true
+        gui.Parent = head
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextStrokeTransparency = 0.5
+        label.TextSize = 12
+        label.Font = Enum.Font.ArialBold
+        label.Text = player.Name
+        label.Parent = gui
+    end
+
+    if player.Character then setup() end
+    player.CharacterAdded:Connect(function() task.wait(1) setup() end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    showNameOnly(player)
+end
+
+Players.PlayerAdded:Connect(showNameOnly)
+
+    else
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+    if player.Character then
+        local head = player.Character:FindFirstChild("Head")
+        if head then
+            local gui = head:FindFirstChild("NameOnly")
+            if gui then
+                gui:Destroy()
+            end
+        end
+    end
+
+    player.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Head"):WaitForChild("NameOnly"):Destroy()
+    end)
+end
+
+    end
+end)
+
+Section:NewToggle("ВЕЩИ", "ИНВЕНТ", function(state)
+    if state then
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
+
+local function showWeaponOnly(player)
+    if player == localPlayer then return end
+
+    local function setup()
+        local character = player.Character
+        if not character then return end
+
+        local head = character:FindFirstChild("Head")
+        if not head then return end
+
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "WeaponOnly"
+        gui.Adornee = head
+        gui.Size = UDim2.new(0, 100, 0, 20)
+        gui.StudsOffset = Vector3.new(0, 2.2, 0)
+        gui.AlwaysOnTop = true
+        gui.Parent = head
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = Color3.fromRGB(180, 220, 255)
+        label.TextStrokeTransparency = 0.7
+        label.TextSize = 11
+        label.Font = Enum.Font.Arial
+        label.Text = "Weapon: None"
+        label.Parent = gui
+
+        RunService.RenderStepped:Connect(function()
+            local tool = character:FindFirstChildOfClass("Tool")
+            label.Text = "Weapon: " .. (tool and tool.Name or "None")
+        end)
+    end
+
+    if player.Character then setup() end
+    player.CharacterAdded:Connect(function() task.wait(1) setup() end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    showWeaponOnly(player)
+end
+
+Players.PlayerAdded:Connect(showWeaponOnly)
+
+    else
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+    if player.Character then
+        local head = player.Character:FindFirstChild("Head")
+        if head then
+            local gui = head:FindFirstChild("WeaponOnly")
+            if gui then
+                gui:Destroy()
+            end
+        end
+    end
+
+    player.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Head"):WaitForChild("WeaponOnly"):Destroy()
+    end)
+end
+
+    end
+end)
+
+Section:NewToggle("ДИСТАНЦИЯ", "ДАЛЕКО", function(state)
+    if state then
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
+
+local function showDistanceOnly(player)
+    if player == localPlayer then return end
+
+    local function setup()
+        local character = player.Character
+        if not character then return end
+
+        local head = character:FindFirstChild("Head")
+        if not head then return end
+
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "DistanceOnly"
+        gui.Adornee = head
+        gui.Size = UDim2.new(0, 100, 0, 20)
+        gui.StudsOffset = Vector3.new(0, 2.35, 0)
+        gui.AlwaysOnTop = true
+        gui.Parent = head
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = Color3.fromRGB(255, 255, 100)
+        label.TextStrokeTransparency = 0.4
+        label.TextSize = 12
+        label.Font = Enum.Font.Arial
+        label.Text = "[0m]"
+        label.Parent = gui
+
+        RunService.RenderStepped:Connect(function()
+            local myHRP = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local targetHRP = character:FindFirstChild("HumanoidRootPart")
+
+            if myHRP and targetHRP then
+                local dist = (targetHRP.Position - myHRP.Position).Magnitude
+                label.Text = string.format("[%dm]", math.floor(dist))
+            end
+        end)
+    end
+
+    if player.Character then setup() end
+    player.CharacterAdded:Connect(function() task.wait(1) setup() end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    showDistanceOnly(player)
+end
+
+Players.PlayerAdded:Connect(showDistanceOnly)
+
+    else
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+    if player.Character then
+        local head = player.Character:FindFirstChild("Head")
+        if head then
+            local gui = head:FindFirstChild("DistanceOnly")
+            if gui then
+                gui:Destroy()
+            end
+        end
+    end
+
+    player.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Head"):WaitForChild("DistanceOnly"):Destroy()
+    end)
+end
+
+    end
+end)
+
 Section:NewToggle("ВХ", "ТИПОВ ВИДНО", function(state)
     if state then
 local color = BrickColor.new(50, 0, 250)
